@@ -45,6 +45,10 @@ pub mod test_utils {
     use crate::AlgebraicMove;
     use crate::Game;
 
+    pub fn unplayed_game() -> Game<AlgebraicMove> {
+        Game::new(Vec::new())
+    }
+
     pub fn italian_game() -> Game<AlgebraicMove> {
         Game::new(vec![
             AlgebraicMove::from_algebraic("e4"),
