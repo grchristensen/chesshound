@@ -13,6 +13,27 @@ impl<M: Move> Game<M> {
     }
 }
 
+/// Interface for types that give the result of a chess game.
+pub trait GiveResult {
+    /// Returns the result of this game.
+    fn result(&self) -> GameResult;
+}
+
+/// Enum representing the possible results in a game.
+#[derive(Clone, Copy)]
+pub enum GameResult {
+    WhiteWon,
+    BlackWon,
+    Draw,
+    Aborted,
+}
+
+impl GiveResult for GameResult {
+    fn result(&self) -> GameResult {
+        *self
+    }
+}
+
 /// An interface for listing moves within a game or similar structure.
 pub trait ListMoves<M: Clone + Move> {
     /// Returns an iterator of all moves within the type.
@@ -44,6 +65,26 @@ pub mod test_utils {
     use crate::moves::Move;
     use crate::AlgebraicMove;
     use crate::Game;
+
+    pub mod results {
+        use super::super::GameResult;
+
+        pub fn white_won() -> GameResult {
+            GameResult::WhiteWon
+        }
+
+        pub fn black_won() -> GameResult {
+            GameResult::BlackWon
+        }
+
+        pub fn draw() -> GameResult {
+            GameResult::Draw
+        }
+
+        pub fn aborted() -> GameResult {
+            GameResult::Aborted
+        }
+    }
 
     pub fn unplayed_game() -> Game<AlgebraicMove> {
         Game::new(Vec::new())

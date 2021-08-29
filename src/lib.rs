@@ -8,6 +8,8 @@ pub mod game;
 pub mod move_tree;
 /// Type and traits for different representations of chess moves.
 pub mod moves;
+/// Functions for getting statistics from sets of games.
+pub mod stats;
 
 pub use game::Game;
 pub use move_tree::MoveTree;
