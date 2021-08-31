@@ -110,59 +110,59 @@ pub mod test_utils {
 
     pub fn italian_game() -> Game<AlgebraicMove> {
         Game::new(vec![
-            AlgebraicMove::from_algebraic("e4"),
-            AlgebraicMove::from_algebraic("e5"),
-            AlgebraicMove::from_algebraic("Nf3"),
-            AlgebraicMove::from_algebraic("Nc6"),
-            AlgebraicMove::from_algebraic("Bc4"),
+            AlgebraicMove::from_algebraic(String::from("e4")),
+            AlgebraicMove::from_algebraic(String::from("e5")),
+            AlgebraicMove::from_algebraic(String::from("Nf3")),
+            AlgebraicMove::from_algebraic(String::from("Nc6")),
+            AlgebraicMove::from_algebraic(String::from("Bc4")),
         ])
     }
 
     pub fn ruy_lopez() -> Game<AlgebraicMove> {
         Game::new(vec![
-            AlgebraicMove::from_algebraic("e4"),
-            AlgebraicMove::from_algebraic("e5"),
-            AlgebraicMove::from_algebraic("Nf3"),
-            AlgebraicMove::from_algebraic("Nc6"),
-            AlgebraicMove::from_algebraic("Bb5"),
+            AlgebraicMove::from_algebraic(String::from("e4")),
+            AlgebraicMove::from_algebraic(String::from("e5")),
+            AlgebraicMove::from_algebraic(String::from("Nf3")),
+            AlgebraicMove::from_algebraic(String::from("Nc6")),
+            AlgebraicMove::from_algebraic(String::from("Bb5")),
         ])
     }
 
     pub fn sicilian_naijdorf() -> Game<AlgebraicMove> {
         Game::new(vec![
-            AlgebraicMove::from_algebraic("e4"),
-            AlgebraicMove::from_algebraic("c5"),
-            AlgebraicMove::from_algebraic("Nf3"),
-            AlgebraicMove::from_algebraic("d3"),
-            AlgebraicMove::from_algebraic("e5"),
-            AlgebraicMove::from_algebraic("cxe5"),
-            AlgebraicMove::from_algebraic("Nxe5"),
-            AlgebraicMove::from_algebraic("Nf6"),
-            AlgebraicMove::from_algebraic("Nc3"),
-            AlgebraicMove::from_algebraic("a6"),
+            AlgebraicMove::from_algebraic(String::from("e4")),
+            AlgebraicMove::from_algebraic(String::from("c5")),
+            AlgebraicMove::from_algebraic(String::from("Nf3")),
+            AlgebraicMove::from_algebraic(String::from("d3")),
+            AlgebraicMove::from_algebraic(String::from("e5")),
+            AlgebraicMove::from_algebraic(String::from("cxe5")),
+            AlgebraicMove::from_algebraic(String::from("Nxe5")),
+            AlgebraicMove::from_algebraic(String::from("Nf6")),
+            AlgebraicMove::from_algebraic(String::from("Nc3")),
+            AlgebraicMove::from_algebraic(String::from("a6")),
         ])
     }
 
     pub fn sicilian_dragon() -> Game<AlgebraicMove> {
         Game::new(vec![
-            AlgebraicMove::from_algebraic("e4"),
-            AlgebraicMove::from_algebraic("c5"),
-            AlgebraicMove::from_algebraic("Nf3"),
-            AlgebraicMove::from_algebraic("d3"),
-            AlgebraicMove::from_algebraic("e5"),
-            AlgebraicMove::from_algebraic("cxe5"),
-            AlgebraicMove::from_algebraic("Nxe5"),
-            AlgebraicMove::from_algebraic("Nf6"),
-            AlgebraicMove::from_algebraic("Nc3"),
-            AlgebraicMove::from_algebraic("g6"),
+            AlgebraicMove::from_algebraic(String::from("e4")),
+            AlgebraicMove::from_algebraic(String::from("c5")),
+            AlgebraicMove::from_algebraic(String::from("Nf3")),
+            AlgebraicMove::from_algebraic(String::from("d3")),
+            AlgebraicMove::from_algebraic(String::from("e5")),
+            AlgebraicMove::from_algebraic(String::from("cxe5")),
+            AlgebraicMove::from_algebraic(String::from("Nxe5")),
+            AlgebraicMove::from_algebraic(String::from("Nf6")),
+            AlgebraicMove::from_algebraic(String::from("Nc3")),
+            AlgebraicMove::from_algebraic(String::from("g6")),
         ])
     }
 
     pub fn queens_gambit() -> Game<AlgebraicMove> {
         Game::new(vec![
-            AlgebraicMove::from_algebraic("d4"),
-            AlgebraicMove::from_algebraic("d5"),
-            AlgebraicMove::from_algebraic("c4"),
+            AlgebraicMove::from_algebraic(String::from("d4")),
+            AlgebraicMove::from_algebraic(String::from("d5")),
+            AlgebraicMove::from_algebraic(String::from("c4")),
         ])
     }
 }

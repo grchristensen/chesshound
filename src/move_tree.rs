@@ -17,27 +17,27 @@ use crate::moves::Move;
 /// use chesshound::MoveTree;
 ///
 /// let game_1 = Game::new(vec![
-///     AlgebraicMove::from_algebraic("e4"),
-///     AlgebraicMove::from_algebraic("e5"),
+///     AlgebraicMove::from_algebraic(String::from("e4")),
+///     AlgebraicMove::from_algebraic(String::from("e5")),
 /// ]);
 ///
 /// let game_2 = Game::new(vec![
-///     AlgebraicMove::from_algebraic("e4"),
-///     AlgebraicMove::from_algebraic("c5"),
+///     AlgebraicMove::from_algebraic(String::from("e4")),
+///     AlgebraicMove::from_algebraic(String::from("c5")),
 /// ]);
 ///
 /// let game_3 = Game::new(vec![
-///     AlgebraicMove::from_algebraic("e4"),
-///     AlgebraicMove::from_algebraic("c5"),
-///     AlgebraicMove::from_algebraic("Nf3"),
+///     AlgebraicMove::from_algebraic(String::from("e4")),
+///     AlgebraicMove::from_algebraic(String::from("c5")),
+///     AlgebraicMove::from_algebraic(String::from("Nf3")),
 /// ]);
 ///
 /// let move_tree = MoveTree::new(vec![game_1, game_2, game_3]);
 ///
 /// // Contains game_2 and game_3
 /// let sicilian_games = move_tree
-///     .with_next(&AlgebraicMove::from_algebraic("e4"))
-///     .with_next(&AlgebraicMove::from_algebraic("c4"));
+///     .with_next(&AlgebraicMove::from_algebraic(String::from("e4")))
+///     .with_next(&AlgebraicMove::from_algebraic(String::from("c4")));
 /// ```
 pub struct MoveTree<M: Clone + Move + Eq + Hash, G: ListMoves<M>> {
     games: Vec<G>,
@@ -289,8 +289,8 @@ mod tests {
         let mut move_tree_view = move_tree.view();
 
         for algebraic_move in moves {
-            move_tree_view =
-                move_tree_view.with_next(&AlgebraicMove::from_algebraic(algebraic_move));
+            move_tree_view = move_tree_view
+                .with_next(&AlgebraicMove::from_algebraic(String::from(algebraic_move)));
         }
 
         assert!(contains_same_games(move_tree_view, expected_games));
