@@ -49,14 +49,32 @@ impl<M: 'static + Clone + Move> ListMoves<M> for Game<M> {
 
 #[cfg(test)]
 mod tests {
+    use rstest::*;
+
     use super::*;
+    use crate::AlgebraicMove;
     use test_utils::*;
 
-    #[test]
-    fn game_equality() {
-        assert_eq!(queens_gambit(), queens_gambit());
-        assert_eq!(sicilian_naijdorf(), sicilian_naijdorf());
-        assert_ne!(sicilian_naijdorf(), italian_game());
+    type AlgebraicGame = Game<AlgebraicMove>;
+
+    #[rstest(
+        game,
+        same_game,
+        case(queens_gambit(), queens_gambit()),
+        case(sicilian_naijdorf(), sicilian_naijdorf())
+    )]
+    fn game_equality(game: AlgebraicGame, same_game: AlgebraicGame) {
+        assert_eq!(game, same_game);
+    }
+
+    #[rstest(
+        game,
+        other_game,
+        case(sicilian_naijdorf(), italian_game()),
+        case(queens_gambit(), ruy_lopez())
+    )]
+    fn game_inequality(game: AlgebraicGame, other_game: AlgebraicGame) {
+        assert_ne!(game, other_game);
     }
 }
 

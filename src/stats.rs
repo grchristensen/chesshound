@@ -39,9 +39,12 @@ pub fn results<'a, G: GiveResult>(
 
 #[cfg(test)]
 mod tests {
+    use rstest::*;
+
     use float_cmp::approx_eq;
 
     use crate::game::test_utils::results::*;
+    use crate::game::GameResult;
 
     use super::results;
 
@@ -49,17 +52,19 @@ mod tests {
         approx_eq!(f64, a, b, epsilon = 0.00000001)
     }
 
-    #[test]
-    fn correct_win_rates() {
-        let white_wins = vec![
+    fn more_white_wins() -> Vec<GameResult> {
+        vec![
             white_won(),
             white_won(),
             aborted(),
             black_won(),
             draw(),
             white_won(),
-        ];
-        let black_wins = vec![
+        ]
+    }
+
+    fn more_black_wins() -> Vec<GameResult> {
+        vec![
             draw(),
             white_won(),
             aborted(),
@@ -68,8 +73,11 @@ mod tests {
             draw(),
             white_won(),
             black_won(),
-        ];
-        let more_draws = vec![
+        ]
+    }
+
+    fn more_draws() -> Vec<GameResult> {
+        vec![
             black_won(),
             draw(),
             draw(),
@@ -77,42 +85,36 @@ mod tests {
             draw(),
             white_won(),
             black_won(),
-        ];
-        let more_aborts = vec![
+        ]
+    }
+
+    fn more_aborts() -> Vec<GameResult> {
+        vec![
             black_won(),
             aborted(),
             white_won(),
             draw(),
             aborted(),
             aborted(),
-        ];
+        ]
+    }
 
-        let (ww0, bw0, d0, a0) = results(&mut white_wins.iter());
+    #[rstest(game_list, expected_results,
+        case(more_white_wins(), (0.5, 1. / 6., 1. / 6., 1. / 6.)),
+        case(more_black_wins(), (0.25, 0.375, 0.25, 0.125)),
+        case(more_draws(), (1. / 7., 2. / 7., 4. / 7., 0.)),
+        case(more_aborts(), (1. / 6., 1. / 6., 1. / 6., 0.5)),
+    )]
+    fn results_should_give_correct_rates(
+        game_list: Vec<GameResult>,
+        expected_results: (f64, f64, f64, f64),
+    ) {
+        let (white_win_rate, black_win_rate, draw_rate, abort_rate) =
+            results(&mut game_list.iter());
 
-        assert!(close(ww0, 0.5));
-        assert!(close(bw0, 1. / 6.));
-        assert!(close(d0, 1. / 6.));
-        assert!(close(a0, 1. / 6.));
-
-        let (ww1, bw1, d1, a1) = results(&mut black_wins.iter());
-
-        assert!(close(ww1, 0.25));
-        assert!(close(bw1, 0.375));
-        assert!(close(d1, 0.25));
-        assert!(close(a1, 0.125));
-
-        let (ww2, bw2, d2, a2) = results(&mut more_draws.iter());
-
-        assert!(close(ww2, 1. / 7.));
-        assert!(close(bw2, 2. / 7.));
-        assert!(close(d2, 4. / 7.));
-        assert!(close(a2, 0.));
-
-        let (ww3, bw3, d3, a3) = results(&mut more_aborts.iter());
-
-        assert!(close(ww3, 1. / 6.));
-        assert!(close(bw3, 1. / 6.));
-        assert!(close(d3, 1. / 6.));
-        assert!(close(a3, 0.5));
+        assert!(close(white_win_rate, expected_results.0));
+        assert!(close(black_win_rate, expected_results.1));
+        assert!(close(draw_rate, expected_results.2));
+        assert!(close(abort_rate, expected_results.3));
     }
 }

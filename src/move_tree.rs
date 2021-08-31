@@ -220,15 +220,22 @@ impl<'a, M: Clone + Move + Eq + Hash, G: ListMoves<M>> Iterator for InternalIter
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use rstest::*;
+
+    use super::{MoveTree, MoveTreeView};
     use crate::game::test_utils::*;
 
+    use crate::moves::Move;
     use crate::AlgebraicMove;
     use crate::Game;
 
+    type AlgebraicGame = Game<AlgebraicMove>;
+    type AlgebraicGameTree = MoveTree<AlgebraicMove, AlgebraicGame>;
+    type AlgebraicGameTreeView<'a> = MoveTreeView<'a, AlgebraicMove, AlgebraicGame>;
+
     fn contains_same_games(
-        move_tree_view: MoveTreeView<AlgebraicMove, Game<AlgebraicMove>>,
-        mut games: Vec<Game<AlgebraicMove>>,
+        move_tree_view: AlgebraicGameTreeView,
+        mut games: Vec<AlgebraicGame>,
     ) -> bool {
         for game in move_tree_view.iter() {
             let mut target_index = games.len();
@@ -253,46 +260,47 @@ mod tests {
         games.len() == 0
     }
 
-    #[test]
-    fn move_trees_should_allow_empty_games() {
-        let games = vec![unplayed_game(), unplayed_game(), ruy_lopez()];
-
-        let move_tree = MoveTree::new(games.clone());
-
-        assert!(contains_same_games(
-            move_tree.view(),
-            vec![unplayed_game(), ruy_lopez(), unplayed_game()]
-        ))
-    }
-
-    #[test]
-    fn move_trees_should_return_subsets() {
-        let games = vec![
+    #[fixture]
+    fn move_tree() -> AlgebraicGameTree {
+        MoveTree::new(vec![
             italian_game(),
             ruy_lopez(),
             sicilian_naijdorf(),
             sicilian_dragon(),
             queens_gambit(),
-        ];
-        let move_tree = MoveTree::new(games.clone());
+        ])
+    }
 
-        let sicilian_games = move_tree
-            .with_next(&AlgebraicMove::from_algebraic("e4"))
-            .with_next(&AlgebraicMove::from_algebraic("c5"));
+    #[fixture]
+    fn move_tree_with_aborts() -> AlgebraicGameTree {
+        MoveTree::new(vec![unplayed_game(), unplayed_game(), ruy_lopez()])
+    }
 
+    #[rstest(moves, expected_games,
+        case(vec!["e4", "c5"], vec![sicilian_naijdorf(), sicilian_dragon()]),
+        case(vec!["d4"], vec![queens_gambit()]),
+        case(vec!["c4", "e5"], vec![]),
+    )]
+    fn with_next_should_return_subsets_of_move_tree(
+        moves: Vec<&str>,
+        expected_games: Vec<AlgebraicGame>,
+        move_tree: AlgebraicGameTree,
+    ) {
+        let mut move_tree_view = move_tree.view();
+
+        for algebraic_move in moves {
+            move_tree_view =
+                move_tree_view.with_next(&AlgebraicMove::from_algebraic(algebraic_move));
+        }
+
+        assert!(contains_same_games(move_tree_view, expected_games));
+    }
+
+    #[rstest]
+    fn move_trees_should_allow_unplayed_games(move_tree_with_aborts: AlgebraicGameTree) {
         assert!(contains_same_games(
-            sicilian_games,
-            vec![sicilian_naijdorf(), sicilian_dragon()]
+            move_tree_with_aborts.view(),
+            vec![unplayed_game(), ruy_lopez(), unplayed_game()]
         ));
-
-        let d4_games = move_tree.with_next(&AlgebraicMove::from_algebraic("d4"));
-
-        assert!(contains_same_games(d4_games, vec![queens_gambit()]));
-
-        let reversed_sicilian_games = move_tree
-            .with_next(&AlgebraicMove::from_algebraic("c4"))
-            .with_next(&AlgebraicMove::from_algebraic("e5"));
-
-        assert!(contains_same_games(reversed_sicilian_games, vec![]));
     }
 }

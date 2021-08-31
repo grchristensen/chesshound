@@ -10,3 +10,4 @@ edition = "2018"
 
 [dev-dependencies]
 float-cmp = "0.5.2"
+rstest = "0.6.4"
