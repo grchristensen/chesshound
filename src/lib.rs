@@ -8,6 +8,8 @@ pub mod game;
 pub mod move_tree;
 /// Type and traits for different representations of chess moves.
 pub mod moves;
+/// Utilities for parsing games from PGN.
+pub mod parsing;
 /// Functions for getting statistics from sets of games.
 pub mod stats;
 
@@ -16,3 +18,4 @@ pub use move_tree::MoveTree;
 pub use move_tree::MoveTreeView;
 pub use moves::AlgebraicMove;
 pub use moves::Move;
+pub use parsing::GameParser;

@@ -1,4 +1,5 @@
 use crate::moves::Move;
+use crate::parsing::PGNGame;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 /// A generic representation of a chess game.
@@ -7,6 +8,23 @@ pub struct Game<M: Move> {
     moves: GameMoves<M>,
     white_player: String,
     black_player: String,
+}
+
+impl<M: Move> From<PGNGame> for Game<M> {
+    fn from(pgn_game: PGNGame) -> Game<M> {
+        let mut moves: Vec<M> = Vec::new();
+
+        for san_move in pgn_game.moves().clone() {
+            moves.push(M::from_algebraic(san_move));
+        }
+
+        Game {
+            result: pgn_game.result().expect("No result in PGN"),
+            moves: GameMoves::new(moves),
+            white_player: String::from(pgn_game.white_player().expect("No white player in PGN")),
+            black_player: String::from(pgn_game.black_player().expect("No black player in PGN")),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -34,7 +52,6 @@ pub enum GameResult {
     WhiteWon,
     BlackWon,
     Draw,
-    Aborted,
 }
 
 impl<M: Move> GiveResult for Game<M> {
@@ -52,6 +69,20 @@ impl<M: 'static + Clone + Move> ListMoves<M> for Game<M> {
 impl GiveResult for GameResult {
     fn result(&self) -> GameResult {
         *self
+    }
+}
+
+impl From<String> for GameResult {
+    fn from(string: String) -> GameResult {
+        if &string == "1-0" {
+            GameResult::WhiteWon
+        } else if &string == "0-1" {
+            GameResult::BlackWon
+        } else if &string == "1/2-1/2" {
+            GameResult::Draw
+        } else {
+            panic!("Invalid result format: {result}", result = string)
+        }
     }
 }
 
@@ -117,10 +148,6 @@ pub mod test_utils {
 
         pub fn draw() -> GameResult {
             GameResult::Draw
-        }
-
-        pub fn aborted() -> GameResult {
-            GameResult::Aborted
         }
     }
 
