@@ -11,22 +11,22 @@ use crate::moves::Move;
 /// # Examples
 ///
 /// ```
-/// use chesshound::Game;
+/// use chesshound::game::GameMoves;
 /// use chesshound::AlgebraicMove;
 /// use chesshound::Move;
 /// use chesshound::MoveTree;
 ///
-/// let game_1 = Game::new(vec![
+/// let game_1 = GameMoves::new(vec![
 ///     AlgebraicMove::from_algebraic(String::from("e4")),
 ///     AlgebraicMove::from_algebraic(String::from("e5")),
 /// ]);
 ///
-/// let game_2 = Game::new(vec![
+/// let game_2 = GameMoves::new(vec![
 ///     AlgebraicMove::from_algebraic(String::from("e4")),
 ///     AlgebraicMove::from_algebraic(String::from("c5")),
 /// ]);
 ///
-/// let game_3 = Game::new(vec![
+/// let game_3 = GameMoves::new(vec![
 ///     AlgebraicMove::from_algebraic(String::from("e4")),
 ///     AlgebraicMove::from_algebraic(String::from("c5")),
 ///     AlgebraicMove::from_algebraic(String::from("Nf3")),
@@ -225,11 +225,11 @@ mod tests {
     use super::{MoveTree, MoveTreeView};
     use crate::game::test_utils::*;
 
+    use crate::game::GameMoves;
     use crate::moves::Move;
     use crate::AlgebraicMove;
-    use crate::Game;
 
-    type AlgebraicGame = Game<AlgebraicMove>;
+    type AlgebraicGame = GameMoves<AlgebraicMove>;
     type AlgebraicGameTree = MoveTree<AlgebraicMove, AlgebraicGame>;
     type AlgebraicGameTreeView<'a> = MoveTreeView<'a, AlgebraicMove, AlgebraicGame>;
 

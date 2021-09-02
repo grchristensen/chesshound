@@ -1,15 +1,24 @@
 use crate::moves::Move;
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Hash)]
-/// A way of representing games based on moves played. Implements ListMoves.
+#[derive(Debug, Clone, PartialEq, Eq)]
+/// A generic representation of a chess game.
 pub struct Game<M: Move> {
+    result: GameResult,
+    moves: GameMoves<M>,
+    white_player: String,
+    black_player: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+/// A way of representing games based on moves played. Implements ListMoves.
+pub struct GameMoves<M: Move> {
     moves: Vec<M>,
 }
 
-impl<M: Move> Game<M> {
-    /// Constructs a new `Game<M>` with no moves played.
-    pub fn new(moves: Vec<M>) -> Game<M> {
-        Game { moves: moves }
+impl<M: Move> GameMoves<M> {
+    /// Constructs a new `GameMoves<M>` with no moves played.
+    pub fn new(moves: Vec<M>) -> GameMoves<M> {
+        GameMoves { moves: moves }
     }
 }
 
@@ -20,12 +29,24 @@ pub trait GiveResult {
 }
 
 /// Enum representing the possible results in a game.
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum GameResult {
     WhiteWon,
     BlackWon,
     Draw,
     Aborted,
+}
+
+impl<M: Move> GiveResult for Game<M> {
+    fn result(&self) -> GameResult {
+        self.result.result()
+    }
+}
+
+impl<M: 'static + Clone + Move> ListMoves<M> for Game<M> {
+    fn list_moves(&self) -> Box<dyn Iterator<Item = M>> {
+        self.moves.list_moves()
+    }
 }
 
 impl GiveResult for GameResult {
@@ -40,8 +61,7 @@ pub trait ListMoves<M: Clone + Move> {
     fn list_moves(&self) -> Box<dyn Iterator<Item = M>>;
 }
 
-impl<M: 'static + Clone + Move> ListMoves<M> for Game<M> {
-    /// Returns an iterator of all moves within the `Game<M>`.
+impl<M: 'static + Clone + Move> ListMoves<M> for GameMoves<M> {
     fn list_moves(&self) -> Box<dyn Iterator<Item = M>> {
         Box::new(self.moves.clone().into_iter())
     }
@@ -55,7 +75,7 @@ mod tests {
     use crate::AlgebraicMove;
     use test_utils::*;
 
-    type AlgebraicGame = Game<AlgebraicMove>;
+    type AlgebraicGame = GameMoves<AlgebraicMove>;
 
     #[rstest(
         game,
@@ -80,9 +100,9 @@ mod tests {
 
 #[cfg(test)]
 pub mod test_utils {
+    use crate::game::GameMoves;
     use crate::moves::Move;
     use crate::AlgebraicMove;
-    use crate::Game;
 
     pub mod results {
         use super::super::GameResult;
@@ -104,12 +124,12 @@ pub mod test_utils {
         }
     }
 
-    pub fn unplayed_game() -> Game<AlgebraicMove> {
-        Game::new(Vec::new())
+    pub fn unplayed_game() -> GameMoves<AlgebraicMove> {
+        GameMoves::new(Vec::new())
     }
 
-    pub fn italian_game() -> Game<AlgebraicMove> {
-        Game::new(vec![
+    pub fn italian_game() -> GameMoves<AlgebraicMove> {
+        GameMoves::new(vec![
             AlgebraicMove::from_algebraic(String::from("e4")),
             AlgebraicMove::from_algebraic(String::from("e5")),
             AlgebraicMove::from_algebraic(String::from("Nf3")),
@@ -118,8 +138,8 @@ pub mod test_utils {
         ])
     }
 
-    pub fn ruy_lopez() -> Game<AlgebraicMove> {
-        Game::new(vec![
+    pub fn ruy_lopez() -> GameMoves<AlgebraicMove> {
+        GameMoves::new(vec![
             AlgebraicMove::from_algebraic(String::from("e4")),
             AlgebraicMove::from_algebraic(String::from("e5")),
             AlgebraicMove::from_algebraic(String::from("Nf3")),
@@ -128,8 +148,8 @@ pub mod test_utils {
         ])
     }
 
-    pub fn sicilian_naijdorf() -> Game<AlgebraicMove> {
-        Game::new(vec![
+    pub fn sicilian_naijdorf() -> GameMoves<AlgebraicMove> {
+        GameMoves::new(vec![
             AlgebraicMove::from_algebraic(String::from("e4")),
             AlgebraicMove::from_algebraic(String::from("c5")),
             AlgebraicMove::from_algebraic(String::from("Nf3")),
@@ -143,8 +163,8 @@ pub mod test_utils {
         ])
     }
 
-    pub fn sicilian_dragon() -> Game<AlgebraicMove> {
-        Game::new(vec![
+    pub fn sicilian_dragon() -> GameMoves<AlgebraicMove> {
+        GameMoves::new(vec![
             AlgebraicMove::from_algebraic(String::from("e4")),
             AlgebraicMove::from_algebraic(String::from("c5")),
             AlgebraicMove::from_algebraic(String::from("Nf3")),
@@ -158,8 +178,8 @@ pub mod test_utils {
         ])
     }
 
-    pub fn queens_gambit() -> Game<AlgebraicMove> {
-        Game::new(vec![
+    pub fn queens_gambit() -> GameMoves<AlgebraicMove> {
+        GameMoves::new(vec![
             AlgebraicMove::from_algebraic(String::from("d4")),
             AlgebraicMove::from_algebraic(String::from("d5")),
             AlgebraicMove::from_algebraic(String::from("c4")),
