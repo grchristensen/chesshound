@@ -21,6 +21,9 @@ pub trait Move {
     {
         Self::try_from_algebraic(algebraic).unwrap()
     }
+
+    /// Returns the algebraic notation represented by this move.
+    fn to_algebraic(self) -> String;
 }
 
 /// Errors related to invalid algebraic notation.
@@ -217,6 +220,10 @@ impl Move for AlgebraicMove {
 
         Ok(AlgebraicMove(String::from(algebraic)))
     }
+
+    fn to_algebraic(self) -> String {
+        self.0
+    }
 }
 
 #[cfg(test)]
@@ -270,5 +277,12 @@ mod tests {
         let san_error = bad_algebraic_move.expect_err("Invalid SAN accepted");
 
         assert_eq!(san_error.message(), expected_message);
+    }
+
+    #[rstest(san_move, case("e4"), case("bxc8#"))]
+    fn algebraic_move_should_convert_to_valid_san(san_move: &str) {
+        let algebraic_move = AlgebraicMove::from_algebraic(String::from(san_move));
+
+        assert_eq!(&algebraic_move.to_algebraic(), san_move);
     }
 }

@@ -148,6 +148,11 @@ impl<'a, M: Clone + Move + Eq + Hash, G: ListMoves<M>> MoveTreeView<'a, M, G> {
     pub fn iter(&self) -> Iter<'a, M, G> {
         Iter::new(&self.game_tree)
     }
+
+    /// Returns all moves that occur within the `MoveTreeView<M, G>` after this one.
+    pub fn branches(&self) -> Option<hash_map::Keys<M, Box<MoveTree<M, G>>>> {
+        self.game_tree.map(|tree| tree.game_tree.keys())
+    }
 }
 
 /// An iterator over games in a `MoveTree<M, G>`.
@@ -222,6 +227,8 @@ impl<'a, M: Clone + Move + Eq + Hash, G: ListMoves<M>> Iterator for InternalIter
 mod tests {
     use rstest::*;
 
+    use std::collections::HashSet;
+
     use super::{MoveTree, MoveTreeView};
     use crate::game::test_utils::*;
 
@@ -294,6 +301,50 @@ mod tests {
         }
 
         assert!(contains_same_games(move_tree_view, expected_games));
+    }
+
+    fn to_moves(san_moves: Vec<&str>) -> Vec<AlgebraicMove> {
+        san_moves
+            .into_iter()
+            .map(|san| AlgebraicMove::from_algebraic(String::from(san)))
+            .collect::<Vec<_>>()
+    }
+
+    #[rstest(games, moves, expected_branches,
+        case(
+            vec![italian_game(), queens_gambit()],
+            vec![],
+            vec!["e4", "d4"]
+        ),
+        case(
+            vec![italian_game(), ruy_lopez()],
+            vec!["e4", "e5", "Nf3", "Nc6"],
+            vec!["Bc4", "Bb5"]
+        ),
+    )]
+    fn branches_should_return_next_possible_moves(
+        games: Vec<AlgebraicGame>,
+        moves: Vec<&str>,
+        expected_branches: Vec<&str>,
+    ) {
+        let moves = to_moves(moves);
+        let expected_branches = to_moves(expected_branches);
+
+        let move_tree = MoveTree::new(games);
+        let mut move_tree_view = move_tree.view();
+
+        for move_ in moves {
+            move_tree_view = move_tree_view.with_next(&move_);
+        }
+
+        let branches: HashSet<&AlgebraicMove> = match move_tree_view.branches() {
+            Some(iter) => iter.collect(),
+            None => HashSet::new(),
+        };
+
+        let expected_branches: HashSet<&AlgebraicMove> = expected_branches.iter().collect();
+
+        assert_eq!(branches, expected_branches);
     }
 
     #[rstest]
