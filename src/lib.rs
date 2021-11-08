@@ -10,6 +10,8 @@ pub mod move_tree;
 pub mod moves;
 /// Utilities for parsing games from PGN.
 pub mod parsing;
+/// Functions for scraping the chess.com public data API.
+pub mod scraping;
 /// Functions for getting statistics from sets of games.
 pub mod stats;
 

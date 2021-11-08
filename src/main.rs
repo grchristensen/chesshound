@@ -1,12 +1,15 @@
 use io::Read;
 use std::io;
 
+use chrono::{DateTime, Utc};
 use clap::{App, Arg, SubCommand};
 use pgn_reader::BufferedReader;
 
+use chesshound::scraping::{APIError, ChessComAPI, GetGames};
 use chesshound::{stats, AlgebraicMove, Game, GameParser, Move, MoveTree};
 
-fn main() -> io::Result<()> {
+#[tokio::main]
+async fn main() -> io::Result<()> {
     let matches = App::new("Chesshound")
         .version("0.1.0")
         .author("Gage C. <github.com/grchristensen>")
@@ -27,25 +30,81 @@ fn main() -> io::Result<()> {
                         .multiple(true),
                 ),
         )
+        .subcommand(
+            SubCommand::with_name("scrape")
+                .about("Collects games from chess.com and prints them to standard output")
+                .arg(
+                    Arg::with_name("PLAYER")
+                        .help("The player account to collect games from")
+                        .index(1),
+                )
+                .arg(
+                    Arg::with_name("BEGIN_TIME")
+                        .help("All games collected will end at or after this time")
+                        .index(2),
+                )
+                .arg(
+                    Arg::with_name("END_TIME")
+                        .help("All games collected will end before or at this time")
+                        .index(3),
+                ),
+        )
         .get_matches();
 
-    if let Some(matches) = matches.subcommand_matches("stats") {
-        let pgn = io::stdin()
-            .lock()
-            .bytes()
-            .map(|b| b.unwrap())
-            .collect::<Vec<_>>();
+    // TODO: Proper error handling of badly entered commands.
+    match matches.subcommand() {
+        ("stats", Some(matches)) => {
+            let pgn = io::stdin()
+                .lock()
+                .bytes()
+                .map(|b| b.unwrap())
+                .collect::<Vec<_>>();
 
-        let moves: Vec<String> = if let Some(values) = matches.values_of("MOVES") {
-            values.map(|move_| String::from(move_)).collect::<Vec<_>>()
-        } else {
-            Vec::new()
-        };
+            let moves: Vec<String> = if let Some(values) = matches.values_of("MOVES") {
+                values.map(|move_| String::from(move_)).collect::<Vec<_>>()
+            } else {
+                Vec::new()
+            };
 
-        let show_branches = matches.is_present("branches");
+            let show_branches = matches.is_present("branches");
 
-        println!("{}", run_stats(&pgn, moves, show_branches)?);
-    }
+            println!("{}", run_stats(&pgn, moves, show_branches)?);
+        }
+        ("scrape", Some(matches)) => {
+            let player = matches.value_of("PLAYER").unwrap();
+            let begin_time = matches.value_of("BEGIN_TIME").unwrap();
+            let end_time = matches.value_of("END_TIME").unwrap();
+
+            let begin_time = begin_time.parse::<DateTime<Utc>>().unwrap();
+            let end_time = end_time.parse::<DateTime<Utc>>().unwrap();
+
+            let api = ChessComAPI::new(String::from("https://api.chess.com"));
+
+            let pgn = match api.get_games(player, begin_time, end_time).await {
+                Ok(pgn) => pgn,
+                Err(e) => match e {
+                    APIError::ClientError(code, reason) => {
+                        panic!("Client Error: {} {}", code, reason)
+                    }
+                    APIError::Connection(url) => {
+                        panic!("Could not connect to {}", url)
+                    }
+                    APIError::Decode => {
+                        panic!("Could not decode API response as JSON")
+                    }
+                    APIError::Timeout => {
+                        panic!("Request for monthly archive timed out")
+                    }
+                    APIError::Unknown(message) => {
+                        panic!("Unexpected error: {}", message)
+                    }
+                },
+            };
+
+            println!("{}", pgn);
+        }
+        _ => {}
+    };
 
     Ok(())
 }
