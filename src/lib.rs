@@ -1,6 +1,17 @@
 //! # Chesshound
 //! Chesshound is a library intending to provide "at a glance" analysis of player games along with
 //! statistical tools to scrape and analyze large amounts of game data.
+//!
+//! ## CLI
+//! Chesshound exports all of its primary capabilities through a command-line tool that allows
+//! users to analyze their games. One of the basic uses of this tool is to take win rate statistics
+//! from a set of games in PGN format.
+//!
+//! ```bash
+//! cat example_games.pgn | chesshound stats
+//! ```
+//!
+//! For comprehensive documentation of the CLI tool, see `chesshound --help`.
 
 /// Types and traits for different representations of chess games.
 pub mod game;
