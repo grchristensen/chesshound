@@ -26,3 +26,7 @@ Farther down the road is a goal to make the application more accessible by:
 - Creating a python wrapper around library functionality.
 - Using the python library to implement a GraphQL service for the application.
 - Designing a ReactJS frontend for end users who wish to analyze their games or use the service to extract game data.
+
+## Contributing
+
+The project will be open to contributions once it has reached the 1.0.0 release.
