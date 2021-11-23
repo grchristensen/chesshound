@@ -5,6 +5,7 @@ use chrono::{DateTime, Utc};
 use clap::{App, Arg, SubCommand};
 use pgn_reader::BufferedReader;
 
+use chesshound::moves::SANError;
 use chesshound::scraping::{APIError, ChessComAPI, GetGames};
 use chesshound::{stats, AlgebraicMove, Game, GameParser, Move, MoveTree};
 
@@ -51,7 +52,6 @@ async fn main() -> io::Result<()> {
         )
         .get_matches();
 
-    // TODO: Proper error handling of badly entered commands.
     match matches.subcommand() {
         ("stats", Some(matches)) => {
             let pgn = io::stdin()
@@ -68,37 +68,63 @@ async fn main() -> io::Result<()> {
 
             let show_branches = matches.is_present("branches");
 
-            println!("{}", run_stats(&pgn, moves, show_branches)?);
+            let stats = match run_stats(&pgn, moves, show_branches) {
+                Ok(stats) => stats,
+                Err(e) => {
+                    // TODO: Refactor so that this error can specifically point out which move was
+                    // incorrect.
+                    eprintln!("{}", e.message());
+                    return Ok(());
+                }
+            };
+
+            println!("{}", stats);
         }
         ("scrape", Some(matches)) => {
             let player = matches.value_of("PLAYER").unwrap();
             let begin_time = matches.value_of("BEGIN_TIME").unwrap();
             let end_time = matches.value_of("END_TIME").unwrap();
 
-            let begin_time = begin_time.parse::<DateTime<Utc>>().unwrap();
-            let end_time = end_time.parse::<DateTime<Utc>>().unwrap();
+            let begin_time = match begin_time.parse::<DateTime<Utc>>() {
+                Ok(begin_time) => begin_time,
+                Err(_) => {
+                    eprintln!("Could not parse beginning time as ISO 8601");
+                    return Ok(());
+                }
+            };
+            let end_time = match end_time.parse::<DateTime<Utc>>() {
+                Ok(end_time) => end_time,
+                Err(_) => {
+                    eprintln!("Could not parse end time as ISO 8601");
+                    return Ok(());
+                }
+            };
 
             let api = ChessComAPI::new(String::from("https://api.chess.com"));
 
             let pgn = match api.get_games(player, begin_time, end_time).await {
                 Ok(pgn) => pgn,
-                Err(e) => match e {
-                    APIError::ClientError(code, reason) => {
-                        panic!("Client Error: {} {}", code, reason)
-                    }
-                    APIError::Connection(url) => {
-                        panic!("Could not connect to {}", url)
-                    }
-                    APIError::Decode => {
-                        panic!("Could not decode API response as JSON")
-                    }
-                    APIError::Timeout => {
-                        panic!("Request for monthly archive timed out")
-                    }
-                    APIError::Unknown(message) => {
-                        panic!("Unexpected error: {}", message)
-                    }
-                },
+                Err(e) => {
+                    match e {
+                        APIError::ClientError(code, reason) => {
+                            eprintln!("Client Error: {} {}", code, reason);
+                        }
+                        APIError::Connection(url) => {
+                            eprintln!("Could not connect to {}", url);
+                        }
+                        APIError::Decode => {
+                            eprintln!("Could not decode API response as JSON");
+                        }
+                        APIError::Timeout => {
+                            eprintln!("Request for monthly archive timed out");
+                        }
+                        APIError::Unknown(message) => {
+                            panic!("Unexpected error: {}", message);
+                        }
+                    };
+
+                    return Ok(());
+                }
             };
 
             println!("{}", pgn);
@@ -109,21 +135,19 @@ async fn main() -> io::Result<()> {
     Ok(())
 }
 
-fn run_stats(pgn: &[u8], moves: Vec<String>, show_branches: bool) -> io::Result<String> {
+fn run_stats(pgn: &[u8], moves: Vec<String>, show_branches: bool) -> Result<String, SANError> {
     let mut reader = BufferedReader::new_cursor(&pgn[..]);
 
-    fn read_game<R: Read>(
-        reader: &mut BufferedReader<R>,
-    ) -> io::Result<Option<Game<AlgebraicMove>>> {
+    fn read_game<R: Read>(reader: &mut BufferedReader<R>) -> Option<Game<AlgebraicMove>> {
         let mut game_parser = GameParser::new();
-        let pgn_game = reader.read_game(&mut game_parser)?;
+        let pgn_game = reader.read_game(&mut game_parser).unwrap();
 
-        Ok(pgn_game.map(|g| Game::<AlgebraicMove>::from(g)))
+        pgn_game.map(|g| Game::<AlgebraicMove>::from(g))
     }
 
     let mut games: Vec<Game<AlgebraicMove>> = Vec::new();
 
-    while let Some(game) = read_game(&mut reader)? {
+    while let Some(game) = read_game(&mut reader) {
         games.push(game);
     }
 
@@ -131,7 +155,8 @@ fn run_stats(pgn: &[u8], moves: Vec<String>, show_branches: bool) -> io::Result<
     let mut move_tree_view = move_tree.view();
 
     for move_ in moves {
-        move_tree_view = move_tree_view.with_next(&AlgebraicMove::from_algebraic(move_));
+        let move_ = AlgebraicMove::try_from_algebraic(move_)?;
+        move_tree_view = move_tree_view.with_next(&move_);
     }
 
     let branches: Vec<String> = if show_branches {
