@@ -1,0 +1,22 @@
+name: Release-Checks
+
+on:
+  push:
+    branches:
+      - 'main'
+
+jobs:
+  run-code-checks:
+    uses: grchristensen/chesshound/.github/workflows/code-checks.yml@ea966e88a0142351ca7543a7616173f77bf9e3c2
+  dry-cargo-publish:
+    needs: run-code-checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      - uses: katyo/publish-crates@v1
+        with:
+          registry-token: ${{ secrets.CRATES_IO_TOKEN }}

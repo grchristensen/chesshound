@@ -1,0 +1,11 @@
+name: Development-Checks
+
+on:
+  push:
+    branches-ignore:
+      - 'main'
+      - 'release/**'
+
+jobs:
+  run-code-checks:
+    uses: grchristensen/chesshound/.github/workflows/code-checks.yml@ea966e88a0142351ca7543a7616173f77bf9e3c2

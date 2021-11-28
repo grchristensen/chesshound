@@ -3,6 +3,9 @@ name = "chesshound"
 version = "0.1.0"
 authors = ["Gage Christensen <grchr4000@gmail.com>"]
 edition = "2018"
+license = "GPL-3.0-only"
+description = "A library for supporting statistical analysis of sets of chess games."
+repository = "https://github.com/grchristensen/chesshound"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
